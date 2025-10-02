@@ -67,10 +67,11 @@ async fn todo_cards(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         .fetch_all(&state.db_pool)
         .await
         .unwrap();
-    println!("todos {:?}", todos);
+
     let mut todos_map = BTreeMap::new();
     todos_map.insert("todos", &todos);
     let result = state.handlebars.render("todo-cards", &todos_map).unwrap();
+
     Html(result)
 }
 
@@ -79,8 +80,6 @@ async fn get_todos(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         .fetch_all(&state.db_pool)
         .await
         .unwrap();
-
-    println!("todos {:?}", todos);
 
     Json(todos)
 }
