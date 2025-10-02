@@ -45,6 +45,7 @@ async fn main() {
     });
     let app = Router::new()
         .route("/", get(index))
+        .route("/todo-cards", get(todo_cards))
         .route("/api/todos", get(get_todos).post(create_todo))
         .with_state(app_state);
 
@@ -57,13 +58,18 @@ async fn main() {
 }
 
 async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let data: BTreeMap<String, String> = BTreeMap::new();
+    let result = state.handlebars.render("index", &data).unwrap();
+    Html(result)
+}
+async fn todo_cards(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let todos = sqlx::query_as::<_, Todo>(r#"SELECT * FROM todos"#)
         .fetch_all(&state.db_pool)
         .await
         .unwrap();
     let mut todos_map = BTreeMap::new();
     todos_map.insert("todos", &todos);
-    let result = state.handlebars.render("index", &todos_map).unwrap();
+    let result = state.handlebars.render("todo-cards", &todos_map).unwrap();
     Html(result)
 }
 

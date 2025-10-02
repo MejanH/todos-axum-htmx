@@ -13,12 +13,8 @@
 <body>
   <main>
     <h1>Hi!</h1>
-    <div>
-      <ul>
-        {{#each todos}}
-          <li>{{this.text}}</li>
-        {{/each}}
-      </ul>
+    <div hx-get="todo-cards" hx-trigger="load delay:2s" hx-swap="innerHTML">
+      Loading...
     </div>
   </main>
 </body>
