@@ -5,11 +5,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HTMX + Rust Todos Application</title>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"
+    integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ"
+    crossorigin="anonymous"></script>
 </head>
 
 <body>
   <main>
     <h1>Hi!</h1>
+    <div>
+      <ul>
+        {{#each todos}}
+          <li>{{this.text}}</li>
+        {{/each}}
+      </ul>
+    </div>
   </main>
 </body>
 

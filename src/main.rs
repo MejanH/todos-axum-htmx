@@ -52,15 +52,18 @@ async fn main() {
         .await
         .unwrap();
 
+    println!("Listening on http://localhost:5000");
     axum::serve(listener, app).await.unwrap();
 }
 
 async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    // If your template does not use any variables, pass an empty map or unit value
-    let result = state
-        .handlebars
-        .render("index", &BTreeMap::<String, String>::new())
+    let todos = sqlx::query_as::<_, Todo>(r#"SELECT * FROM todos"#)
+        .fetch_all(&state.db_pool)
+        .await
         .unwrap();
+    let mut todos_map = BTreeMap::new();
+    todos_map.insert("todos", &todos);
+    let result = state.handlebars.render("index", &todos_map).unwrap();
     Html(result)
 }
 
