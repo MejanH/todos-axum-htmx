@@ -1,8 +1,15 @@
-use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::get};
+use axum::{
+    Json, Router,
+    extract::State,
+    http::StatusCode,
+    response::{Html, IntoResponse},
+    routing::get,
+};
 use dotenv::dotenv;
+use handlebars::{DirectorySourceOptions, Handlebars};
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, SqlitePool, prelude::FromRow};
-use std::env;
+use sqlx::{SqlitePool, prelude::FromRow};
+use std::{collections::BTreeMap, env, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -12,6 +19,11 @@ struct Todo {
     completed: bool,
 }
 
+struct AppState {
+    db_pool: SqlitePool,
+    handlebars: Handlebars<'static>,
+}
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -19,14 +31,22 @@ async fn main() {
         .await
         .unwrap();
 
-    let todos = sqlx::query!(r#"SELECT * FROM todos"#)
-        .fetch_all(&pool)
-        .await
+    let mut handlebars = Handlebars::new();
+
+    handlebars.set_dev_mode(true);
+
+    handlebars
+        .register_templates_directory("./templates", DirectorySourceOptions::default())
         .unwrap();
 
+    let app_state = Arc::new(AppState {
+        db_pool: pool,
+        handlebars,
+    });
     let app = Router::new()
-        .route("/", get(todos_index).post(create_todo))
-        .with_state(pool);
+        .route("/", get(index))
+        .route("/api/todos", get(get_todos).post(create_todo))
+        .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("localhost:5000")
         .await
@@ -35,9 +55,18 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn todos_index(State(SqlitePool): State<SqlitePool>) -> impl IntoResponse {
+async fn index(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    // If your template does not use any variables, pass an empty map or unit value
+    let result = state
+        .handlebars
+        .render("index", &BTreeMap::<String, String>::new())
+        .unwrap();
+    Html(result)
+}
+
+async fn get_todos(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let todos = sqlx::query_as::<_, Todo>(r#"SELECT * FROM todos"#)
-        .fetch_all(&SqlitePool)
+        .fetch_all(&state.db_pool)
         .await
         .unwrap();
 
@@ -52,7 +81,7 @@ struct CreateTodo {
 }
 
 async fn create_todo(
-    State(pool): State<SqlitePool>,
+    State(state): State<Arc<AppState>>,
     Json(payload): Json<CreateTodo>,
 ) -> impl IntoResponse {
     let new_todo = Todo {
@@ -67,7 +96,7 @@ async fn create_todo(
         new_todo.text,
         new_todo.completed
     )
-    .execute(&pool)
+    .execute(&state.db_pool)
     .await
     .unwrap();
 

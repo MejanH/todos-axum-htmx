@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 axum = "0.8.6"
 dotenv = "0.15.0"
+handlebars = { version = "6.3.2", features = ["dir_source"] }
 serde = { version = "1.0.228", features = ["derive"] }
 sqlx = { version = "0.8.6", features = ["sqlite", "runtime-tokio", "tls-native-tls"] }
 tokio = { version = "1.47.1", features = ["full"] }

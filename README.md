@@ -1,12 +1,14 @@
 # HTMX with Axum and SQLite
 
+- copy `.env.example` to `.env`
 - `mkdir db`
-- install sqlx-cli
+- install `sqlx-cli`
 - `sqlx database create`
 - `sqlx migrate run`
 - `bacon run`
 
 ### Todos
 
-- [ ] Add Handlebars for rendering
+- [x] Add Handlebars for rendering
 - [ ] Get todos with HTMX
+- [ ] Try material v3
