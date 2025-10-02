@@ -13,7 +13,11 @@
 <body>
   <main>
     <h1>Hi!</h1>
-    <div hx-get="todo-cards" hx-trigger="load delay:2s" hx-swap="innerHTML">
+    <form hx-post="/api/todos" hx-swap="afterbegin" hx-target="#todo-list">
+      <input type="text" name="text" id="text" placeholder="New todo" required>
+      <button type="submit">Add</button>
+    </form>
+    <div hx-get="todo-cards" id="todo-cards" hx-trigger="load delay:500ms" hx-swap="innerHTML">
       Loading...
     </div>
   </main>

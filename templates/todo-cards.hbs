@@ -1,5 +1,8 @@
 <ul>
   {{#each todos}}
-    <li>{{this.text}}</li>
+    <li id="todo-list">
+      <input type="checkbox" {{#if this.completed}}checked{{/if}} />
+      <span>{{this.text}}</span>
+    </li>
   {{/each}}
 </ul>

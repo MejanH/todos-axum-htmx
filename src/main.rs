@@ -1,5 +1,5 @@
 use axum::{
-    Json, Router,
+    Form, Json, Router,
     extract::State,
     http::StatusCode,
     response::{Html, IntoResponse},
@@ -67,6 +67,7 @@ async fn todo_cards(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         .fetch_all(&state.db_pool)
         .await
         .unwrap();
+    println!("todos {:?}", todos);
     let mut todos_map = BTreeMap::new();
     todos_map.insert("todos", &todos);
     let result = state.handlebars.render("todo-cards", &todos_map).unwrap();
@@ -91,11 +92,11 @@ struct CreateTodo {
 
 async fn create_todo(
     State(state): State<Arc<AppState>>,
-    Json(payload): Json<CreateTodo>,
+    Form(input): Form<CreateTodo>,
 ) -> impl IntoResponse {
     let new_todo = Todo {
         id: Uuid::new_v4().to_string(),
-        text: payload.text,
+        text: input.text,
         completed: false,
     };
 
@@ -109,5 +110,12 @@ async fn create_todo(
     .await
     .unwrap();
 
-    (StatusCode::CREATED, Json(new_todo))
+    Html(format!(
+        r#"<li>
+            <input type="checkbox" {}>
+            <span>{}</span>
+        </li>"#,
+        if new_todo.completed { "checked" } else { "" },
+        new_todo.text
+    ))
 }
