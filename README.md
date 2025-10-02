@@ -10,5 +10,5 @@
 ### Todos
 
 - [x] Add Handlebars for rendering
-- [ ] Get todos with HTMX
+- [x] Get/Create todos with HTMX
 - [ ] Try material v3
